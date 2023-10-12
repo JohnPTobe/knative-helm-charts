@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "knative-serving-sslip.fullname" . }}-service
+  labels:
+    app: default-domain
+    app.kubernetes.io/component: default-domain-job
+  {{- include "knative-serving-sslip.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: default-domain
+  {{- include "knative-serving-sslip.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.service.ports | toYaml | nindent 2 -}}

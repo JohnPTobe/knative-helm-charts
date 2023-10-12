@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "knative-serving-sslip.fullname" . }}-default-domain
+  labels:
+    app: default-domain
+    app.kubernetes.io/component: default-domain-job
+  {{- include "knative-serving-sslip.labels" . | nindent 4 }}
+spec:
+  backoffLimit: {{ .Values.defaultDomain.backoffLimit }}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: default-domain
+        app.kubernetes.io/component: default-domain-job
+        app.kubernetes.io/name: knative-serving
+        app.kubernetes.io/version: 1.11.1
+    spec:
+      containers:
+      - args: {{- toYaml .Values.defaultDomain.defaultDomain.args | nindent 8 }}
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: SYSTEM_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.defaultDomain.defaultDomain.image.repository }}:{{ .Values.defaultDomain.defaultDomain.image.tag
+          | default .Chart.AppVersion }}
+        livenessProbe:
+          failureThreshold: 6
+          httpGet:
+            port: 8080
+        name: default-domain
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          httpGet:
+            port: 8080
+        resources: {{- toYaml .Values.defaultDomain.defaultDomain.resources | nindent
+          10 }}
+        securityContext: {{- toYaml .Values.defaultDomain.defaultDomain.containerSecurityContext
+          | nindent 10 }}
+      restartPolicy: Never
+      serviceAccountName: controller

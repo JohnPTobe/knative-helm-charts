@@ -1,0 +1,9 @@
+apiVersion: caching.internal.knative.dev/v1alpha1
+kind: Image
+metadata:
+  name: {{ include "knative-serving-core.fullname" . }}-queue-proxy
+  labels:
+    app.kubernetes.io/component: queue-proxy
+  {{- include "knative-serving-core.labels" . | nindent 4 }}
+spec:
+  image: gcr.io/knative-releases/knative.dev/serving/cmd/queue@sha256:2b9e0783e9f7143b27d1d21974853a0af36f2029cf1dee085dcf46d1f8c5b677

@@ -1,0 +1,31 @@
+defaultDomain:
+  backoffLimit: 10
+  defaultDomain:
+    args:
+    - -magic-dns=sslip.io
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    image:
+      repository: gcr.io/knative-releases/knative.dev/serving/cmd/default-domain@sha256
+      tag: 3be07f16a92279cddfeaf88b54f123abb6feb9e11cd749f62bfdffabee2ba0af
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1000Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+kubernetesClusterDomain: cluster.local
+service:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
