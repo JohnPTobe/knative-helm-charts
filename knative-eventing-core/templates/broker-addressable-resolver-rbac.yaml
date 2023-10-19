@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "knative-eventing-core.fullname" . }}-broker-addressable-resolver
+  labels:
+    duck.knative.dev/addressable: "true"
+  {{- include "knative-eventing-core.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - eventing.knative.dev
+  resources:
+  - brokers
+  - brokers/status
+  verbs:
+  - get
+  - list
+  - watch

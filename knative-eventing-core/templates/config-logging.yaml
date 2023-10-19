@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "knative-eventing-core.fullname" . }}-config-logging
+  labels:
+    knative.dev/config-category: eventing
+    knative.dev/config-propagation: original
+  {{- include "knative-eventing-core.labels" . | nindent 4 }}
+data:
+  loglevel.controller: {{ .Values.configLogging.loglevelController | quote }}
+  loglevel.webhook: {{ .Values.configLogging.loglevelWebhook | quote }}
+  zap-logger-config: {{ .Values.configLogging.zapLoggerConfig | toYaml | indent 1
+    }}

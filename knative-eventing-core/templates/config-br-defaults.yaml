@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "knative-eventing-core.fullname" . }}-config-br-defaults
+  labels:
+  {{- include "knative-eventing-core.labels" . | nindent 4 }}
+data:
+  default-br-config: {{ .Values.configBrDefaults.defaultBrConfig | toYaml | indent
+    1 }}

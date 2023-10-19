@@ -1,0 +1,258 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "knative-eventing-core.fullname" . }}-eventing-controller
+  labels:
+    app.kubernetes.io/component: eventing-controller
+    knative.dev/high-availability: "true"
+  {{- include "knative-eventing-core.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: eventing-controller
+    {{- include "knative-eventing-core.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: eventing-controller
+        app.kubernetes.io/component: eventing-controller
+        app.kubernetes.io/name: knative-eventing
+        app.kubernetes.io/version: 1.11.5
+      {{- include "knative-eventing-core.selectorLabels" . | nindent 8 }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: eventing-controller
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - env:
+        - name: SYSTEM_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CONFIG_LOGGING_NAME
+          value: {{ quote .Values.eventingController.eventingController.env.configLoggingName
+            }}
+        - name: CONFIG_OBSERVABILITY_NAME
+          value: {{ quote .Values.eventingController.eventingController.env.configObservabilityName
+            }}
+        - name: METRICS_DOMAIN
+          value: {{ quote .Values.eventingController.eventingController.env.metricsDomain
+            }}
+        - name: APISERVER_RA_IMAGE
+          value: {{ quote .Values.eventingController.eventingController.env.apiserverRaImage
+            }}
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.eventingController.eventingController.image.repository }}:{{
+          .Values.eventingController.eventingController.image.tag | default .Chart.AppVersion
+          }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: probes
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+        name: eventing-controller
+        ports:
+        - containerPort: 9090
+          name: metrics
+        - containerPort: 8008
+          name: profiling
+        - containerPort: 8080
+          name: probes
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: probes
+            scheme: HTTP
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources: {{- toYaml .Values.eventingController.eventingController.resources |
+          nindent 10 }}
+        securityContext: {{- toYaml .Values.eventingController.eventingController.containerSecurityContext
+          | nindent 10 }}
+        terminationMessagePolicy: FallbackToLogsOnError
+      enableServiceLinks: false
+      serviceAccountName: {{ include "knative-eventing-core.fullname" . }}-eventing-controller
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "knative-eventing-core.fullname" . }}-pingsource-mt-adapter
+  labels:
+    app.kubernetes.io/component: pingsource-mt-adapter
+  {{- include "knative-eventing-core.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.pingsourceMtAdapter.replicas }}
+  selector:
+    matchLabels:
+      eventing.knative.dev/source: ping-source-controller
+      sources.knative.dev/role: adapter
+    {{- include "knative-eventing-core.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: pingsource-mt-adapter
+        app.kubernetes.io/name: knative-eventing
+        app.kubernetes.io/version: 1.11.5
+        eventing.knative.dev/source: ping-source-controller
+        sources.knative.dev/role: adapter
+      {{- include "knative-eventing-core.selectorLabels" . | nindent 8 }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  eventing.knative.dev/source: ping-source-controller
+                  sources.knative.dev/role: adapter
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - env:
+        - name: SYSTEM_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: K_METRICS_CONFIG
+          value: {{ quote .Values.pingsourceMtAdapter.dispatcher.env.kMetricsConfig }}
+        - name: K_LOGGING_CONFIG
+          value: {{ quote .Values.pingsourceMtAdapter.dispatcher.env.kLoggingConfig }}
+        - name: K_LEADER_ELECTION_CONFIG
+          value: {{ quote .Values.pingsourceMtAdapter.dispatcher.env.kLeaderElectionConfig
+            }}
+        - name: K_NO_SHUTDOWN_AFTER
+          value: {{ quote .Values.pingsourceMtAdapter.dispatcher.env.kNoShutdownAfter }}
+        - name: K_SINK_TIMEOUT
+          value: {{ quote .Values.pingsourceMtAdapter.dispatcher.env.kSinkTimeout }}
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.pingsourceMtAdapter.dispatcher.image.repository }}:{{ .Values.pingsourceMtAdapter.dispatcher.image.tag
+          | default .Chart.AppVersion }}
+        name: dispatcher
+        ports:
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+        resources: {{- toYaml .Values.pingsourceMtAdapter.dispatcher.resources | nindent
+          10 }}
+        securityContext: {{- toYaml .Values.pingsourceMtAdapter.dispatcher.containerSecurityContext
+          | nindent 10 }}
+      enableServiceLinks: false
+      serviceAccountName: {{ include "knative-eventing-core.fullname" . }}-pingsource-mt-adapter
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "knative-eventing-core.fullname" . }}-eventing-webhook
+  labels:
+    app.kubernetes.io/component: eventing-webhook
+  {{- include "knative-eventing-core.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: eventing-webhook
+      role: eventing-webhook
+    {{- include "knative-eventing-core.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: eventing-webhook
+        app.kubernetes.io/component: eventing-webhook
+        app.kubernetes.io/name: knative-eventing
+        app.kubernetes.io/version: 1.11.5
+        role: eventing-webhook
+      {{- include "knative-eventing-core.selectorLabels" . | nindent 8 }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: eventing-webhook
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - env:
+        - name: SYSTEM_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CONFIG_LOGGING_NAME
+          value: {{ quote .Values.eventingWebhook.eventingWebhook.env.configLoggingName
+            }}
+        - name: METRICS_DOMAIN
+          value: {{ quote .Values.eventingWebhook.eventingWebhook.env.metricsDomain }}
+        - name: WEBHOOK_NAME
+          value: {{ quote .Values.eventingWebhook.eventingWebhook.env.webhookName }}
+        - name: WEBHOOK_PORT
+          value: {{ quote .Values.eventingWebhook.eventingWebhook.env.webhookPort }}
+        - name: SINK_BINDING_SELECTION_MODE
+          value: {{ quote .Values.eventingWebhook.eventingWebhook.env.sinkBindingSelectionMode
+            }}
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.eventingWebhook.eventingWebhook.image.repository }}:{{ .Values.eventingWebhook.eventingWebhook.image.tag
+          | default .Chart.AppVersion }}
+        livenessProbe:
+          httpGet:
+            httpHeaders:
+            - name: k-kubelet-probe
+              value: webhook
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 120
+          periodSeconds: 1
+        name: eventing-webhook
+        ports:
+        - containerPort: 8443
+          name: https-webhook
+        - containerPort: 9090
+          name: metrics
+        - containerPort: 8008
+          name: profiling
+        readinessProbe:
+          httpGet:
+            httpHeaders:
+            - name: k-kubelet-probe
+              value: webhook
+            port: 8443
+            scheme: HTTPS
+          periodSeconds: 1
+        resources: {{- toYaml .Values.eventingWebhook.eventingWebhook.resources | nindent
+          10 }}
+        securityContext: {{- toYaml .Values.eventingWebhook.eventingWebhook.containerSecurityContext
+          | nindent 10 }}
+        terminationMessagePolicy: FallbackToLogsOnError
+      enableServiceLinks: false
+      serviceAccountName: {{ include "knative-eventing-core.fullname" . }}-eventing-webhook
+      terminationGracePeriodSeconds: 300

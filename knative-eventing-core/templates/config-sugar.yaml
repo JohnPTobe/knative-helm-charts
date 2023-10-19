@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "knative-eventing-core.fullname" . }}-config-sugar
+  labels:
+  {{- include "knative-eventing-core.labels" . | nindent 4 }}
+  annotations:
+    knative.dev/example-checksum: 62dfac6f
+data:
+  _example: {{ .Values.configSugar.Example | toYaml | indent 1 }}

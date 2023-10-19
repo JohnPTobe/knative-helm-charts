@@ -1,0 +1,20 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "knative-eventing-core.fullname" . }}-knative-eventing-namespaced-view
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+  {{- include "knative-eventing-core.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - eventing.knative.dev
+  - messaging.knative.dev
+  - sources.knative.dev
+  - flows.knative.dev
+  - bindings.knative.dev
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - watch

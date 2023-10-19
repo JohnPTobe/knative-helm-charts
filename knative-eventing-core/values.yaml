@@ -1,1 +1,309 @@
+configBrDefaultChannel:
+  channelTemplateSpec: |-
+    apiVersion: messaging.knative.dev/v1
+    kind: InMemoryChannel
+configBrDefaults:
+  defaultBrConfig: |-
+    clusterDefault:
+      brokerClass: MTChannelBasedBroker
+      apiVersion: v1
+      kind: ConfigMap
+      name: config-br-default-channel
+      namespace: knative-eventing
+      delivery:
+        retry: 10
+        backoffPolicy: exponential
+        backoffDelay: PT0.2S
+configFeatures:
+  deliveryRetryafter: disabled
+  deliveryTimeout: enabled
+  eventtypeAutoCreate: disabled
+  kreferenceGroup: disabled
+  kreferenceMapping: disabled
+  newTriggerFilters: disabled
+  transportEncryption: disabled
+configKreferenceMapping:
+  Example: |-
+    ################################
+    #                              #
+    #    EXAMPLE CONFIGURATION     #
+    #                              #
+    ################################
+    # This block is not actually functional configuration,
+    # but serves to illustrate the available configuration
+    # options and document them in a way that is accessible
+    # to users that `kubectl edit` this config map.
+    # this is an example of mapping from pod to addressable-pod service
+    # the data key must be of the form "kind.version.group"
+    # the data value must be a valid URL. Valid template data are:
+    # - Name: reference name
+    # - Namespace: reference namespace
+    # - SystemNamespace: knative namespace
+    # - UID: reference UID
+    #
+    # Pod.v1: https://addressable-pod.{{ .SystemNamespace }}.svc.cluster.local/{{ .Name }}
+configLeaderElection:
+  Example: |-
+    ################################
+    #                              #
+    #    EXAMPLE CONFIGURATION     #
+    #                              #
+    ################################
+    # This block is not actually functional configuration,
+    # but serves to illustrate the available configuration
+    # options and document them in a way that is accessible
+    # to users that `kubectl edit` this config map.
+    #
+    # These sample configuration options may be copied out of
+    # this example block and unindented to be in the data block
+    # to actually change the configuration.
+    # lease-duration is how long non-leaders will wait to try to acquire the
+    # lock; 15 seconds is the value used by core kubernetes controllers.
+    lease-duration: "15s"
+    # renew-deadline is how long a leader will try to renew the lease before
+    # giving up; 10 seconds is the value used by core kubernetes controllers.
+    renew-deadline: "10s"
+    # retry-period is how long the leader election client waits between tries of
+    # actions; 2 seconds is the value used by core kubernetes controllers.
+    retry-period: "2s"
+    # buckets is the number of buckets used to partition key space of each
+    # Reconciler. If this number is M and the replica number of the controller
+    # is N, the N replicas will compete for the M buckets. The owner of a
+    # bucket will take care of the reconciling for the keys partitioned into
+    # that bucket.
+    buckets: "1"
+configLogging:
+  loglevelController: info
+  loglevelWebhook: info
+  zapLoggerConfig: |-
+    {
+      "level": "info",
+      "development": false,
+      "outputPaths": ["stdout"],
+      "errorOutputPaths": ["stderr"],
+      "encoding": "json",
+      "encoderConfig": {
+        "timeKey": "ts",
+        "levelKey": "level",
+        "nameKey": "logger",
+        "callerKey": "caller",
+        "messageKey": "msg",
+        "stacktraceKey": "stacktrace",
+        "lineEnding": "",
+        "levelEncoder": "",
+        "timeEncoder": "iso8601",
+        "durationEncoder": "",
+        "callerEncoder": ""
+      }
+    }
+configObservability:
+  Example: |-
+    ################################
+    #                              #
+    #    EXAMPLE CONFIGURATION     #
+    #                              #
+    ################################
+    # This block is not actually functional configuration,
+    # but serves to illustrate the available configuration
+    # options and document them in a way that is accessible
+    # to users that `kubectl edit` this config map.
+    #
+    # These sample configuration options may be copied out of
+    # this example block and unindented to be in the data block
+    # to actually change the configuration.
+    # metrics.backend-destination field specifies the system metrics destination.
+    # It supports either prometheus (the default) or stackdriver.
+    # Note: Using stackdriver will incur additional charges
+    metrics.backend-destination: prometheus
+    # metrics.request-metrics-backend-destination specifies the request metrics
+    # destination. If non-empty, it enables queue proxy to send request metrics.
+    # Currently supported values: prometheus, stackdriver.
+    metrics.request-metrics-backend-destination: prometheus
+    # metrics.stackdriver-project-id field specifies the stackdriver project ID. This
+    # field is optional. When running on GCE, application default credentials will be
+    # used if this field is not provided.
+    metrics.stackdriver-project-id: "<your stackdriver project id>"
+    # metrics.allow-stackdriver-custom-metrics indicates whether it is allowed to send metrics to
+    # Stackdriver using "global" resource type and custom metric type if the
+    # metrics are not supported by "knative_broker", "knative_trigger", and "knative_source" resource types.
+    # Setting this flag to "true" could cause extra Stackdriver charge.
+    # If metrics.backend-destination is not Stackdriver, this is ignored.
+    metrics.allow-stackdriver-custom-metrics: "false"
+    # profiling.enable indicates whether it is allowed to retrieve runtime profiling data from
+    # the pods via an HTTP server in the format expected by the pprof visualization tool. When
+    # enabled, the Knative Eventing pods expose the profiling data on an alternate HTTP port 8008.
+    # The HTTP context root for profiling is then /debug/pprof/.
+    profiling.enable: "false"
+    # sink-event-error-reporting.enable whether the adapter reports a kube event to the CRD indicating
+    # a failure to send a cloud event to the sink.
+    sink-event-error-reporting.enable: "false"
+configPingDefaults:
+  Example: |-
+    ################################
+    #                              #
+    #    EXAMPLE CONFIGURATION     #
+    #                              #
+    ################################
+    # This block is not actually functional configuration,
+    # but serves to illustrate the available configuration
+    # options and document them in a way that is accessible
+    # to users that `kubectl edit` this config map.
+    #
+    # These sample configuration options may be copied out of
+    # this example block and unindented to be in the data block
+    # to actually change the configuration.
+    # Max number of bytes allowed to be sent for message excluding any
+    # base64 decoding. Default is no limit set for data
+    data-max-size: -1
+configSugar:
+  Example: |-
+    ################################
+    #                              #
+    #    EXAMPLE CONFIGURATION     #
+    #                              #
+    ################################
+    # This block is not actually functional configuration,
+    # but serves to illustrate the available configuration
+    # options and document them in a way that is accessible
+    # to users that `kubectl edit` this config map.
+    #
+    # These sample configuration options may be copied out of
+    # this example block and unindented to be in the data block
+    # to actually change the configuration.
+    # namespace-selector specifies a LabelSelector which
+    # determines which namespaces the Sugar Controller should operate upon
+    # Use an empty value to disable the feature (this is the default):
+    namespace-selector: ""
+    # Use an empty object as a string to enable for all namespaces
+    namespace-selector: "{}"
+    # trigger-selector specifies a LabelSelector which
+    # determines which triggers the Sugar Controller should operate upon
+    # Use an empty value to disable the feature (this is the default):
+    trigger-selector: ""
+    # Use an empty object as string to enable for all triggers
+    trigger-selector: "{}"
+configTracing:
+  Example: |-
+    ################################
+    #                              #
+    #    EXAMPLE CONFIGURATION     #
+    #                              #
+    ################################
+    # This block is not actually functional configuration,
+    # but serves to illustrate the available configuration
+    # options and document them in a way that is accessible
+    # to users that `kubectl edit` this config map.
+    #
+    # These sample configuration options may be copied out of
+    # this example block and unindented to be in the data block
+    # to actually change the configuration.
+    #
+    # This may be "zipkin" or "none". the default is "none"
+    backend: "none"
+    # URL to zipkin collector where traces are sent.
+    # This must be specified when backend is "zipkin"
+    zipkin-endpoint: "http://zipkin.istio-system.svc.cluster.local:9411/api/v2/spans"
+    # Enable zipkin debug mode. This allows all spans to be sent to the server
+    # bypassing sampling.
+    debug: "false"
+    # Percentage (0-1) of requests to trace
+    sample-rate: "0.1"
+defaultChWebhook:
+  defaultChConfig: |-
+    clusterDefault:
+      apiVersion: messaging.knative.dev/v1
+      kind: InMemoryChannel
+    namespaceDefaults:
+      some-namespace:
+        apiVersion: messaging.knative.dev/v1
+        kind: InMemoryChannel
+eventingController:
+  eventingController:
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    env:
+      apiserverRaImage: gcr.io/knative-releases/knative.dev/eventing/cmd/apiserver_receive_adapter@sha256:a39cf0e3629b27f5c662f984edbab049426d80b9cd0db75b2dfb5933ca35f697
+      configLoggingName: config-logging
+      configObservabilityName: config-observability
+      metricsDomain: knative.dev/eventing
+    image:
+      repository: gcr.io/knative-releases/knative.dev/eventing/cmd/controller@sha256
+      tag: 8ba443bd676ef27bc983132e6d8eb86bb37dafadf53c19267f419ed285d0b178
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+  serviceAccount:
+    annotations: {}
+eventingWebhook:
+  eventingWebhook:
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    env:
+      configLoggingName: config-logging
+      metricsDomain: knative.dev/eventing
+      sinkBindingSelectionMode: exclusion
+      webhookName: eventing-webhook
+      webhookPort: "8443"
+    image:
+      repository: gcr.io/knative-releases/knative.dev/eventing/cmd/webhook@sha256
+      tag: 0dd3cc4f4430bdb21c38eee9de83d20fca55ed037fecd350f0219a7d36fc64c9
+    resources:
+      limits:
+        cpu: 200m
+        memory: 200Mi
+      requests:
+        cpu: 100m
+        memory: 50Mi
+  ports:
+  - name: https-webhook
+    port: 443
+    targetPort: 8443
+  serviceAccount:
+    annotations: {}
+  type: ClusterIP
 kubernetesClusterDomain: cluster.local
+pingsourceMtAdapter:
+  dispatcher:
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    env:
+      kLeaderElectionConfig: ""
+      kLoggingConfig: ""
+      kMetricsConfig: ""
+      kNoShutdownAfter: ""
+      kSinkTimeout: "-1"
+    image:
+      repository: gcr.io/knative-releases/knative.dev/eventing/cmd/mtping@sha256
+      tag: 728b596b43a97fcdbce588c714173238adf0426684b8eb665be55a6f3896fda6
+    resources:
+      limits:
+        cpu: "1"
+        memory: 2Gi
+      requests:
+        cpu: 125m
+        memory: 64Mi
+  replicas: 0
+  serviceAccount:
+    annotations: {}
